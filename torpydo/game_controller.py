@@ -2,6 +2,7 @@ import random
 
 from torpydo.ship import Color, Letter, Position, Ship
 
+
 class GameController(object):
     def check_is_hit(ships: list, shot: Position):
         if ships is None:
@@ -27,7 +28,7 @@ class GameController(object):
 
     def is_ship_valid(ship: Ship):
         is_valid = len(ship.positions) == ship.size
-        
+
         return is_valid
 
     def get_random_position(size: int):

@@ -1,11 +1,13 @@
 from enum import Enum
 
+
 class Color(Enum):
     CADET_BLUE = 1
     CHARTREUSE = 2
     ORANGE = 3
     RED = 4
     YELLOW = 5
+
 
 class Letter(Enum):
     A = 1
@@ -16,6 +18,7 @@ class Letter(Enum):
     F = 6
     G = 7
     H = 8
+
 
 class Position(object):
     def __init__(self, column: Letter, row: int):
@@ -30,6 +33,7 @@ class Position(object):
 
     __repr__ = __str__
 
+
 class Ship(object):
     def __init__(self, name: str, size: int, color: Color):
         self.name = name
@@ -42,7 +46,7 @@ class Ship(object):
         number = int(input[1:])
         position = Position(letter, number)
 
-        self.positions.append(Position(letter, number))
+        self.positions.append(position)
 
     def __str__(self):
         return f"{self.color.name} {self.name} ({self.size}): {self.positions}"

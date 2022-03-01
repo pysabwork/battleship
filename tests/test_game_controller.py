@@ -3,6 +3,7 @@ import unittest
 from torpydo.game_controller import GameController
 from torpydo.ship import Color, Letter, Position, Ship
 
+
 class TestShip(unittest.TestCase):
     def setUp(self):
         self.ships = []
@@ -28,10 +29,12 @@ class TestShip(unittest.TestCase):
     def test_is_ship_valid_true(self):
         self.assertTrue(GameController.is_ship_valid(self.ships[0]))
 
+
 def init_ship(ship: Ship, positions: list):
     ship.positions = positions
 
     return ship
+
 
 if '__main__' == __name__:
     unittest.main()
