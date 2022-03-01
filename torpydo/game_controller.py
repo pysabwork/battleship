@@ -3,7 +3,8 @@ import random
 from torpydo.ship import Color, Letter, Position, Ship
 
 
-class GameController(object):
+class GameController:
+    @staticmethod
     def check_is_hit(ships: list, shot: Position):
         if ships is None:
             raise ValueError('ships is null')
@@ -18,6 +19,7 @@ class GameController(object):
 
         return False
 
+    @staticmethod
     def initialize_ships():
         return [
             Ship("Aircraft Carrier", 5, Color.CADET_BLUE),
@@ -26,11 +28,13 @@ class GameController(object):
             Ship("Destroyer", 3, Color.YELLOW),
             Ship("Patrol Boat", 2, Color.ORANGE)]
 
+    @staticmethod
     def is_ship_valid(ship: Ship):
         is_valid = len(ship.positions) == ship.size
 
         return is_valid
 
+    @staticmethod
     def get_random_position(size: int):
         letter = random.choice(list(Letter))
         number = random.randrange(size)
