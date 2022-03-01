@@ -79,7 +79,7 @@ class Game:
             print()
 
             # Player turn
-            print(f"[Turn={turn}] Player -> it's your turn (Game board from A to H and 1 to {self.lines})")
+            print(f"[Turn={turn}] Player -> It's your turn (Game board from A to H and 1 to {self.lines})")
             user_input = input(f"[Turn={turn}] Player -> Enter coordinates for your shot or 'Q' to quit: ")
 
             if user_input == 'Q':
@@ -90,9 +90,9 @@ class Game:
             is_hit = GameController.check_is_hit(self.enemy_fleet, position)
             if is_hit:
                 self.display_explosion()
-                print(Fore.RED + f"[Turn={turn}] Player -> Yeah ! Nice hit !" + Style.RESET_ALL)
+                print(Fore.RED + f"[Turn={turn}] Player -> {position} Yeah ! Nice hit !" + Style.RESET_ALL)
             else:
-                print(Fore.BLUE + f"[Turn={turn}] Player -> {position} Miss" + Style.RESET_ALL)
+                print(Fore.BLUE + f"[Turn={turn}] Player -> {position} is a miss" + Style.RESET_ALL)
 
             TelemetryClient.trackEvent('Player_ShootPosition',
                                        {'custom_dimensions': {'Position': str(position), 'IsHit': is_hit}})
@@ -103,10 +103,10 @@ class Game:
             print()
             print(f"\t[Turn={turn}] Computer -> Shot in {str(position)}")
             if is_hit:
-                print(Fore.RED + f"\t[Turn={turn}] Computer -> Hits your ship!" + Style.RESET_ALL)
+                print(Fore.RED + f"\t[Turn={turn}] Computer -> {str(position)} hits your ship!" + Style.RESET_ALL)
                 self.display_explosion()
             else:
-                print(Fore.BLUE + f"\t[Turn={turn}] Computer -> {str(position)} miss" + Style.RESET_ALL)
+                print(Fore.BLUE + f"\t[Turn={turn}] Computer -> {str(position)} is a miss" + Style.RESET_ALL)
 
             TelemetryClient.trackEvent('Computer_ShootPosition',
                                        {'custom_dimensions': {'Position': str(position), 'IsHit': is_hit}})
