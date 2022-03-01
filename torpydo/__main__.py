@@ -1,6 +1,7 @@
 """
 Entry point for when the game is run as `python -m torpydo`.
 """
-from torpydo.battleship import main
+from torpydo.battleship import Game
 
-main()
+game = Game()
+game.main()

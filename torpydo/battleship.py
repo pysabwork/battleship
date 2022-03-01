@@ -9,164 +9,196 @@ from torpydo.game_controller import GameController
 from torpydo.ship import Letter, Position
 from torpydo.telemetryclient import TelemetryClient
 
-print("Starting")
 
-myFleet = []
-enemyFleet = []
+class Game:
+    def __init__(self):
+        self.rows = 8
+        self.lines = 8
+        self.my_fleet = []
+        self.enemy_fleet = []
 
+    def main(self):
+        print("Starting...")
 
-def main():
-    TelemetryClient.init()
-    TelemetryClient.trackEvent('ApplicationStarted', {'custom_dimensions': {'Technology': 'Python'}})
-    colorama.init()
-    print(Fore.YELLOW + r"""
-                                    |__
-                                    |\/
-                                    ---
-                                    / | [
-                             !      | |||
-                           _/|     _/|-++'
-                       +  +--|    |--|--|_ |-
-                     { /|__|  |/\__|  |--- |||__/
-                    +---------------___[}-_===_.'____                 /\
-                ____`-' ||___-{]_| _[}-  |     |_[___\==--            \/   _
- __..._____--==/___]_|__|_____________________________[___\==--____,------' .7
-|                        Welcome to Battleship                         BB-61/
- \_________________________________________________________________________|""" + Style.RESET_ALL)
+        TelemetryClient.init()
+        TelemetryClient.trackEvent('ApplicationStarted', {'custom_dimensions': {'Technology': 'Python'}})
+        colorama.init()
+        print(Fore.YELLOW + r"""
+                                        |__
+                                        |\/
+                                        ---
+                                        / | [
+                                 !      | |||
+                               _/|     _/|-++'
+                           +  +--|    |--|--|_ |-
+                         { /|__|  |/\__|  |--- |||__/
+                        +---------------___[}-_===_.'____                 /\
+                    ____`-' ||___-{]_| _[}-  |     |_[___\==--            \/   _
+     __..._____--==/___]_|__|_____________________________[___\==--____,------' .7
+    |                        Welcome to Battleship                         BB-61/
+     \_________________________________________________________________________|""" + Style.RESET_ALL)
 
-    initialize_game()
+        self.initialize_game()
+        self.start_game()
 
-    start_game()
+    @staticmethod
+    def display_canon():
+        print(Fore.YELLOW + r'''
+                              __
+                             /  \
+                       .-.  |    |
+               *    _.-'  \  \__/
+                \.-'       \
+               /          _/
+               |      _  /
+               |     /_\
+                \    \_/
+                 """"""""''' + Style.RESET_ALL)
 
+    @staticmethod
+    def display_explosion():
+        print(Fore.RED + r'''
+            \          .  ./
+          \   .:"";'.:..""   /
+             (M^^.^~~:.'"").
+        -   (/  .    . . \ \)  -
+           ((| :. ~ ^  :. .|))
+        -   (\- |  \ /  |  /)  -
+             -\  \     /  /-
+               \  \   /  /''' + Style.RESET_ALL)
 
-def start_game():
-    global myFleet, enemyFleet
-    # clear the screen
-    if platform.system().lower() == "windows":
-        cmd = 'cls'
-    else:
-        cmd = 'clear'
-    os.system(cmd)
-    print(r'''
-                  __
-                 /  \
-           .-.  |    |
-   *    _.-'  \  \__/
-    \.-'       \
-   /          _/
-   |      _  /
-   |     /_\
-    \    \_/
-     """"""""''')
+    def start_game(self):
+        # clear the screen
+        cmd = 'cls' if platform.system().lower() == "windows" else 'clear'
+        os.system(cmd)
 
-    while True:
-        print()
-        print("Player, it's your turn")
-        position = parse_position(input("Enter coordinates for your shot :"))
-        is_hit = GameController.check_is_hit(enemyFleet, position)
-        if is_hit:
-            print(r'''
-                \          .  ./
-              \   .:"";'.:..""   /
-                 (M^^.^~~:.'"").
-            -   (/  .    . . \ \)  -
-               ((| :. ~ ^  :. .|))
-            -   (\- |  \ /  |  /)  -
-                 -\  \     /  /-
-                   \  \   /  /''')
+        self.display_canon()
 
-        print("Yeah ! Nice hit !" if is_hit else "Miss")
-        TelemetryClient.trackEvent('Player_ShootPosition',
-                                   {'custom_dimensions': {'Position': str(position), 'IsHit': is_hit}})
+        turn = 1
+        while True:
+            print()
 
-        position = get_random_position()
-        is_hit = GameController.check_is_hit(myFleet, position)
-        print()
-        print(f"Computer shoot in {str(position)} and {'hit your ship!' if is_hit else 'miss'}")
-        TelemetryClient.trackEvent('Computer_ShootPosition',
-                                   {'custom_dimensions': {'Position': str(position), 'IsHit': is_hit}})
-        if is_hit:
-            print(r'''
-                \          .  ./
-              \   .:"";'.:..""   /
-                 (M^^.^~~:.'"").
-            -   (/  .    . . \ \)  -
-               ((| :. ~ ^  :. .|))
-            -   (\- |  \ /  |  /)  -
-                 -\  \     /  /-
-                   \  \   /  /''')
+            # Player turn
+            print(f"[Turn={turn}] Player -> It's your turn (Game board from A to H and 1 to {self.lines})")
+            user_input = input(f"[Turn={turn}] Player -> Enter coordinates for your shot or 'Q' to quit: ")
 
+            if user_input == 'Q':
+                print('BYE!')
+                break
 
-def parse_position(user_input: str):
-    letter = Letter[user_input.upper()[:1]]
-    number = int(user_input[1:])
-    position = Position(letter, number)
+            position = self.parse_position(user_input)
+            is_hit = GameController.check_is_hit(self.enemy_fleet, position)
+            if is_hit:
+                self.display_explosion()
+                print(Fore.RED + f"[Turn={turn}] Player -> {position} Yeah ! Nice hit !" + Style.RESET_ALL)
+            else:
+                print(Fore.BLUE + f"[Turn={turn}] Player -> {position} is a miss" + Style.RESET_ALL)
 
-    return position
+            TelemetryClient.trackEvent('Player_ShootPosition',
+                                       {'custom_dimensions': {'Position': str(position), 'IsHit': is_hit}})
 
+            # Computer turn
+            position = self.get_random_position()
+            is_hit = GameController.check_is_hit(self.my_fleet, position)
+            print()
+            print(f"\t[Turn={turn}] Computer -> Shot in {str(position)}")
+            if is_hit:
+                print(Fore.RED + f"\t[Turn={turn}] Computer -> {str(position)} hits your ship!" + Style.RESET_ALL)
+                self.display_explosion()
+            else:
+                print(Fore.BLUE + f"\t[Turn={turn}] Computer -> {str(position)} is a miss" + Style.RESET_ALL)
 
-def get_random_position():
-    rows = 8
-    lines = 8
+            TelemetryClient.trackEvent('Computer_ShootPosition',
+                                       {'custom_dimensions': {'Position': str(position), 'IsHit': is_hit}})
 
-    letter = Letter(random.randint(1, lines))
-    number = random.randint(1, rows)
-    position = Position(letter, number)
+            print()
+            print('*' * 50)
+            turn += 1
 
-    return position
+    @staticmethod
+    def parse_position(user_input: str):
+        letter = Letter[user_input.upper()[:1]]
+        number = int(user_input[1:])
+        position = Position(letter, number)
 
+        return position
 
-def initialize_game():
-    initialize_my_fleet()
+    def get_random_position(self):
+        letter = Letter(random.randint(1, self.lines))
+        number = random.randint(1, self.rows)
+        position = Position(letter, number)
 
-    initialize_enemyFleet()
+        return position
 
+    def initialize_game(self):
+        self.initialize_my_test_fleet()
+        self.initialize_enemy_fleet()
 
-def initialize_my_fleet():
-    global myFleet
+    def initialize_my_fleet(self):
+        self.my_fleet = GameController.initialize_ships()
 
-    myFleet = GameController.initialize_ships()
+        print("Please position your fleet (Game board has size from A to H and 1 to 8) :")
 
-    print("Please position your fleet (Game board has size from A to H and 1 to 8) :")
+        for ship in self.my_fleet:
+            print()
+            print(f"Please enter the positions for the {ship.name} (size: {ship.size})")
 
-    for ship in myFleet:
-        print()
-        print(f"Please enter the positions for the {ship.name} (size: {ship.size})")
+            for i in range(ship.size):
+                position_input = input(f"Enter position {i + 1} of {ship.size} (i.e A3):")
+                ship.add_position(position_input)
+                TelemetryClient.trackEvent('Player_PlaceShipPosition', {
+                    'custom_dimensions': {'Position': position_input, 'Ship': ship.name, 'PositionInShip': i}})
 
-        for i in range(ship.size):
-            position_input = input(f"Enter position {i + 1} of {ship.size} (i.e A3):")
-            ship.add_position(position_input)
-            TelemetryClient.trackEvent('Player_PlaceShipPosition', {
-                'custom_dimensions': {'Position': position_input, 'Ship': ship.name, 'PositionInShip': i}})
+    def initialize_enemy_fleet(self):
+        self.enemy_fleet = GameController.initialize_ships()
 
+        self.enemy_fleet[0].positions.append(Position(Letter.B, 4))
+        self.enemy_fleet[0].positions.append(Position(Letter.B, 5))
+        self.enemy_fleet[0].positions.append(Position(Letter.B, 6))
+        self.enemy_fleet[0].positions.append(Position(Letter.B, 7))
+        self.enemy_fleet[0].positions.append(Position(Letter.B, 8))
 
-def initialize_enemyFleet():
-    global enemyFleet
+        self.enemy_fleet[1].positions.append(Position(Letter.E, 6))
+        self.enemy_fleet[1].positions.append(Position(Letter.E, 7))
+        self.enemy_fleet[1].positions.append(Position(Letter.E, 8))
+        self.enemy_fleet[1].positions.append(Position(Letter.E, 9))
 
-    enemyFleet = GameController.initialize_ships()
+        self.enemy_fleet[2].positions.append(Position(Letter.A, 3))
+        self.enemy_fleet[2].positions.append(Position(Letter.B, 3))
+        self.enemy_fleet[2].positions.append(Position(Letter.C, 3))
 
-    enemyFleet[0].positions.append(Position(Letter.B, 4))
-    enemyFleet[0].positions.append(Position(Letter.B, 5))
-    enemyFleet[0].positions.append(Position(Letter.B, 6))
-    enemyFleet[0].positions.append(Position(Letter.B, 7))
-    enemyFleet[0].positions.append(Position(Letter.B, 8))
+        self.enemy_fleet[3].positions.append(Position(Letter.F, 8))
+        self.enemy_fleet[3].positions.append(Position(Letter.G, 8))
+        self.enemy_fleet[3].positions.append(Position(Letter.H, 8))
 
-    enemyFleet[1].positions.append(Position(Letter.E, 6))
-    enemyFleet[1].positions.append(Position(Letter.E, 7))
-    enemyFleet[1].positions.append(Position(Letter.E, 8))
-    enemyFleet[1].positions.append(Position(Letter.E, 9))
+        self.enemy_fleet[4].positions.append(Position(Letter.C, 5))
+        self.enemy_fleet[4].positions.append(Position(Letter.C, 6))
 
-    enemyFleet[2].positions.append(Position(Letter.A, 3))
-    enemyFleet[2].positions.append(Position(Letter.B, 3))
-    enemyFleet[2].positions.append(Position(Letter.C, 3))
+    def initialize_my_test_fleet(self):
+        self.my_fleet = GameController.initialize_ships()
 
-    enemyFleet[3].positions.append(Position(Letter.F, 8))
-    enemyFleet[3].positions.append(Position(Letter.G, 8))
-    enemyFleet[3].positions.append(Position(Letter.H, 8))
+        self.my_fleet[0].positions.append(Position(Letter.A, 4))
+        self.my_fleet[0].positions.append(Position(Letter.A, 5))
+        self.my_fleet[0].positions.append(Position(Letter.A, 6))
+        self.my_fleet[0].positions.append(Position(Letter.A, 7))
+        self.my_fleet[0].positions.append(Position(Letter.A, 8))
 
-    enemyFleet[4].positions.append(Position(Letter.C, 5))
-    enemyFleet[4].positions.append(Position(Letter.C, 6))
+        self.my_fleet[1].positions.append(Position(Letter.B, 6))
+        self.my_fleet[1].positions.append(Position(Letter.B, 7))
+        self.my_fleet[1].positions.append(Position(Letter.B, 8))
+        self.my_fleet[1].positions.append(Position(Letter.B, 9))
+
+        self.my_fleet[2].positions.append(Position(Letter.C, 3))
+        self.my_fleet[2].positions.append(Position(Letter.C, 4))
+        self.my_fleet[2].positions.append(Position(Letter.C, 5))
+
+        self.my_fleet[3].positions.append(Position(Letter.D, 1))
+        self.my_fleet[3].positions.append(Position(Letter.D, 2))
+        self.my_fleet[3].positions.append(Position(Letter.D, 3))
+
+        self.my_fleet[4].positions.append(Position(Letter.C, 5))
+        self.my_fleet[4].positions.append(Position(Letter.C, 6))
 
 
 if __name__ == '__main__':
-    main()
+    game = Game
